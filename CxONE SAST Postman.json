@@ -1,0 +1,184 @@
+{
+    "info": {
+      "name": "Checkmarx ONE API",
+      "description": "Collection to pull SAST results from Checkmarx ONE and export to CSV",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "Get Access Token",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            },
+            {
+              "key": "Accept",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "urlencoded",
+            "urlencoded": [
+              {
+                "key": "grant_type",
+                "value": "client_credentials"
+              },
+              {
+                "key": "client_id",
+                "value": "<your_client_id>"
+              },
+              {
+                "key": "client_secret",
+                "value": "<your_client_secret>"
+              }
+            ]
+          },
+          "url": {
+            "raw": "https://us.iam.checkmarx.net/auth/realms/{tenant_account_name}/protocol/openid-connect/token",
+            "protocol": "https",
+            "host": [
+              "us",
+              "iam",
+              "checkmarx",
+              "net"
+            ],
+            "path": [
+              "auth",
+              "realms",
+              "{tenant_account_name}",
+              "protocol",
+              "openid-connect",
+              "token"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Generate SAST Report",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{access_token}}"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\"fileFormat\":\"csv\",\"reportType\":\"ui\",\"reportName\":\"improved-scan-report\",\"data\":{\"scanId\":\"{{scanId}}\",\"projectId\":\"{{projectId}}\",\"branchName\":\"master\",\"sections\":[],\"scanners\":[\"SAST\"],\"sectionsValidation\":[],\"host\":\"https://us.ast.checkmarx.net\"}}"
+          },
+          "url": {
+            "raw": "https://us.ast.checkmarx.net/api/reports/",
+            "protocol": "https",
+            "host": [
+              "us",
+              "ast",
+              "checkmarx",
+              "net"
+            ],
+            "path": [
+              "api",
+              "reports"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Get Report Status",
+        "request": {
+          "method": "GET",
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{access_token}}"
+            }
+          ],
+          "url": {
+            "raw": "https://us.ast.checkmarx.net/api/reports/{{reportId}}/status",
+            "protocol": "https",
+            "host": [
+              "us",
+              "ast",
+              "checkmarx",
+              "net"
+            ],
+            "path": [
+              "api",
+              "reports",
+              "{{reportId}}",
+              "status"
+            ]
+          }
+        }
+      },
+      {
+        "name": "Download Report",
+        "request": {
+          "method": "GET",
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{access_token}}"
+            }
+          ],
+          "url": {
+            "raw": "https://us.ast.checkmarx.net/api/reports/{{reportId}}/download",
+            "protocol": "https",
+            "host": [
+              "us",
+              "ast",
+              "checkmarx",
+              "net"
+            ],
+            "path": [
+              "api",
+              "reports",
+              "{{reportId}}",
+              "download"
+            ]
+          }
+        }
+      }
+    ],
+    "auth": {
+      "type": "bearer",
+      "bearer": [
+        {
+          "key": "token",
+          "value": "{{access_token}}"
+        }
+      ]
+    },
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "pm.environment.set('base_url', 'https://us.ast.checkmarx.net');"
+          ],
+          "type": "text/javascript"
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "if (pm.request.method === 'POST') {",
+            "    let responseJson = pm.response.json();",
+            "    pm.environment.set('access_token', responseJson.access_token);",
+            "    pm.environment.set('reportId', responseJson.reportId);",
+            "}"
+          ],
+          "type": "text/javascript"
+        }
+      }
+    ]
+  }
+  
